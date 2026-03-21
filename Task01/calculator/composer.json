@@ -1,0 +1,24 @@
+{
+    "name": "radiculitca/calculator",
+    "description": "Консольная игра \"калькулятор\"",
+    "type": "project",
+    "require": {
+        "wp-cli/php-cli-tools": "^0.12.8"
+    },
+    "license": "MIT",
+    "autoload": {
+        "files": [
+            "src/Controller.php",
+            "src/View.php"
+        ]
+    },
+    "bin": [
+        "bin/calculator"
+    ],
+    "authors": [
+        {
+            "name": "Нижегородов Ярослав",
+            "email": "nizhegorodov05@mail.ru"
+        }
+    ]
+}

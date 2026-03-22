@@ -8,7 +8,7 @@ $showForm = true;
 
 
 
-// 1. ОБРАБОТКА ОТВЕТА
+
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['user_answer'])) {
     $userName = $_POST['player_name'] ?: 'Аноним';
     $userAnswer = (int)$_POST['user_answer'];
@@ -18,18 +18,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['user_answer'])) {
     $isWinner = ($userAnswer === $correctAnswer);
     $message = $isWinner ? "Правильно!" : "Ошибка! Правильный ответ: $correctAnswer";
 
-    // 2. ЗАПИСЬ В БАЗУ
     $stmt = $pdo->prepare("INSERT INTO games (player_name, expression, correct_answer, user_answer, is_winner) VALUES (?, ?, ?, ?, ?)");
     $stmt->execute([$userName, $expression, $correctAnswer, $userAnswer, (int)$isWinner]);
     
-    $showForm = false; // После ответа скрываем форму и показываем кнопку "Играть снова"
+    $showForm = false;
 }
 
-// 3. ПОДГОТОВКА НОВОЙ ИГРЫ
 $game = Radiculitca\Calculator\Generator\generateExpression();
 ?>
 
-<!-- HTML ВЬЮШКА -->
+
 <!DOCTYPE html>
 <html lang="ru">
 <head><title>Калькулятор</title></head>
@@ -46,7 +44,6 @@ $game = Radiculitca\Calculator\Generator\generateExpression();
             <p>Игрок: <input type="text" name="player_name" required></p>
             <p>Вычислите: <?= $game['expression'] ?></p>
             
-            <!-- Скрытые поля, чтобы "пробросить" данные в следующий запрос -->
             <input type="hidden" name="expression" value="<?= $game['expression'] ?>">
             <input type="hidden" name="correct_answer" value="<?= $game['answer'] ?>">
 

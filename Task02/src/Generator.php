@@ -14,16 +14,15 @@ function generateExpression() {
     // Формируем строку для отображения пользователю
     $expression = "{$numbers[0]}{$ops[0]}{$numbers[1]}{$ops[1]}{$numbers[2]}{$ops[2]}{$numbers[3]}";
     
-    // Передаем в расчет именно МАССИВЫ, а не строку
     $answer = calculate($numbers, $ops); 
 
     return [
-        'expression' => $expression, // Ключи лучше оставить на английском для кода
+        'expression' => $expression,
         'answer' => $answer
     ];
 }
 
-// Изменяем аргументы функции: теперь она принимает числа и операторы отдельно
+
 function calculate($nums, $ops) {
     // 1. Первый проход: обрабатываем умножение
     for ($i = 0; $i < count($ops); $i++) {

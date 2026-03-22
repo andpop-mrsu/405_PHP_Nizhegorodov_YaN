@@ -3,7 +3,6 @@ $dbPath = __DIR__ . '/../db/calculator.sqlite';
 
 try {
     $pdo = new PDO("sqlite:$dbPath");
-    // Устанавливаем режим выборки в виде ассоциативного массива
     $pdo->setAttribute(PDO::ATTR_DEFAULT_FETCH_MODE, PDO::FETCH_ASSOC);
 
     // Запрашиваем все игры, сортируем по дате (новые сверху)

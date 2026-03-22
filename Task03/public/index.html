@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Calculator SPA</title>
+    <style>
+        body { font-family: sans-serif; padding: 20px; }
+        .hidden { display: none; }
+        .card { border: 1px solid #ddd; padding: 15px; margin-top: 10px; border-radius: 8px; }
+        table { border-collapse: collapse; width: 100%; margin-top: 10px; }
+        th, td { border: 1px solid #eee; padding: 8px; text-align: left; }
+    </style>
+</head>
+<body>
+    <h1>Калькулятор REST API</h1>
+
+    <!-- Экран 1: Вход -->
+    <div id="screen-start">
+        <input type="text" id="username" placeholder="Ваше имя">
+        <button onclick="startGame()">Начать игру</button>
+        <button onclick="loadHistory()">История</button>
+    </div>
+
+    <!-- Экран 2: Игра -->
+    <div id="screen-game" class="hidden">
+        <div class="card">
+            <h2 id="expr-display"></h2>
+            <input type="number" id="ans-input">
+            <button onclick="sendAnswer()">Ответить</button>
+        </div>
+    </div>
+
+    <!-- Экран 3: Результат -->
+    <div id="screen-result" class="hidden">
+        <h2 id="res-text"></h2>
+        <button onclick="location.reload()">В начало</button>
+    </div>
+
+    <!-- Экран 4: История -->
+    <div id="screen-history" class="hidden">
+        <h2>История игр</h2>
+        <div id="history-table"></div>
+        <button onclick="location.reload()">Назад</button>
+    </div>
+
+    <script>
+        let currentGameId = null;
+        async function readJsonOrThrow(response) {
+            if (response.ok) {
+                return response.json();
+            }
+            const errorText = await response.text();
+            throw new Error(`HTTP ${response.status}: ${errorText}`);
+        }
+
+        async function startGame() {
+            try {
+                const name = document.getElementById('username').value || 'Аноним';
+                const res = await fetch('./games', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({player_name: name})
+                });
+                const data = await readJsonOrThrow(res);
+                currentGameId = data.game_id;
+                document.getElementById('expr-display').innerText = data.expression + " = ?";
+                switchScreen('game');
+            } catch (err) {
+                alert('Не удалось начать игру: ' + err.message);
+            }
+        }
+
+        async function sendAnswer() {
+            try {
+                const val = document.getElementById('ans-input').value;
+                const res = await fetch(`./step/${currentGameId}`, {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({user_answer: val})
+                });
+                const data = await readJsonOrThrow(res);
+                document.getElementById('res-text').innerText = data.correct ? "Верно!" : "Ошибка! Правильно: " + data.answer;
+                switchScreen('result');
+            } catch (err) {
+                alert('Не удалось отправить ответ: ' + err.message);
+            }
+        }
+
+        async function loadHistory() {
+            try {
+                const res = await fetch('./games');
+                const data = await readJsonOrThrow(res);
+                let html = '<table><tr><th>Игрок</th><th>Дата</th><th>Пример</th><th>Введенный ответ</th><th>Правильный ответ</th><th>Статус</th></tr>';
+                data.forEach(g => {
+                    let statusText = 'Решается';
+                    if (g.status === 'won') statusText = 'Правильно';
+                    if (g.status === 'lost') statusText = 'Неправильно';
+
+                    const userAnswer = g.status === 'active' ? '—' : (g.user_answer ?? '—');
+                    const correctAnswer = g.correct_answer ?? '—';
+
+                    html += `<tr>
+                        <td>${g.player_name}</td>
+                        <td>${g.game_date}</td>
+                        <td>${g.expression || '—'}</td>
+                        <td>${userAnswer}</td>
+                        <td>${correctAnswer}</td>
+                        <td>${statusText}</td>
+                    </tr>`;
+                });
+                html += '</table>';
+                document.getElementById('history-table').innerHTML = html;
+                switchScreen('history');
+            } catch (err) {
+                alert('Не удалось загрузить историю: ' + err.message);
+            }
+        }
+
+        function switchScreen(id) {
+            document.querySelectorAll('div[id^="screen-"]').forEach(s => s.classList.add('hidden'));
+            document.getElementById('screen-' + id).classList.remove('hidden');
+        }
+    </script>
+</body>
+</html>
